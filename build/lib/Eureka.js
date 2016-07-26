@@ -177,14 +177,14 @@ class EurekaClient {
         instanceToTest = instances;
       }
 
-      (0, _utils.checkInstanceUp)(instance).then(instance => {
+      return (0, _utils.checkInstanceUp)(instanceToTest).then(instance => {
         const { hostName, securePort, port } = instance;
         const protocol = securePort['@enabled'] === 'true' ? 'https' : 'http';
         const hostPort = securePort['@enabled'] === 'true' ? securePort.$ : port['@enabled'] === 'true' ? port.$ : 80;
 
         return resolve(`${ protocol }://${ hostName }:${ hostPort }`);
       }).catch(() => {
-        if (Array.isArray(instance)) {
+        if (Array.isArray(instances)) {
           return getInstanceByAppId(appId, instanceNumber + 1);
         } else {
           err.error.reason = 'app is down';
