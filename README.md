@@ -46,3 +46,4 @@ The following methods are available after instantiating a new EurekaClient objec
 
 ## TODO
   - Allow passing a custom `winston` logging transport, e.g. for remote logging
+  - Add support for Eureka 1.1
