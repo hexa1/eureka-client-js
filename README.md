@@ -1,7 +1,7 @@
 # eureka-client-js
 
 ## Usage
-Install via npm+git: `npm install insurun/eureka-client-js --save`.
+Install via npm+git: `npm install hexa1/eureka-client-js --save`.
 
 ```js
 import EurekaClient from 'eureka-client-js'; // (if using es2015 packages)
