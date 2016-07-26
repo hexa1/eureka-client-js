@@ -13,7 +13,7 @@
   "author": "Vito LaVilla <vito@vitosamson.com>",
   "license": "SEE LICENSE IN LICENSE.txt",
   "bugs": {
-    "url": "https://github.com/insurun/eureka-client-js/issues"
+    "url": "https://github.com/hexa1/eureka-client-js/issues"
   },
   "homepage": "https://github.com/hexa1/eureka-client-js#readme",
   "dependencies": {
