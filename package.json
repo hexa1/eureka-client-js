@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/insurun/eureka-client-js.git"
+    "url": "git+https://github.com/hexa1/eureka-client-js.git"
   },
   "author": "Vito LaVilla <vito@vitosamson.com>",
   "license": "SEE LICENSE IN LICENSE.txt",
   "bugs": {
     "url": "https://github.com/insurun/eureka-client-js/issues"
   },
-  "homepage": "https://github.com/insurun/eureka-client-js#readme",
+  "homepage": "https://github.com/hexa1/eureka-client-js#readme",
   "dependencies": {
     "babel-plugin-transform-es2015-modules-commonjs": "^6.11.5",
     "babel-register": "^6.11.5",
