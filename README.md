@@ -48,3 +48,9 @@ The following methods are available after instantiating a new EurekaClient objec
   - Allow passing a custom `winston` logging transport, e.g. for remote logging
   - Add support for Eureka 1.1
   - Tests
+
+## Development
+
+Please lint all code before committing: `npm run lint`.
+
+The package needs to be built and the built files committed: `npm run build`.

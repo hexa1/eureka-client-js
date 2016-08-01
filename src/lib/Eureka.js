@@ -37,7 +37,7 @@ export default class EurekaClient {
 
   register() {
     const { eurekaHost, appName, hostName, ipAddr, port, instanceId, statusPageUrl,
-      dataCenterInfo, registerRetryInterval, heartbeatInterval, registryInterval  } = this.options;
+      dataCenterInfo, registerRetryInterval, heartbeatInterval, registryInterval } = this.options;
 
     this.logger.log('info', 'registering with eureka');
 
@@ -106,7 +106,7 @@ export default class EurekaClient {
 
       if (Array.isArray(application)) {
         application.reduce((cache, { name, instance }) => {
-          cache[name] = instance;
+          cache[name] = instance; // eslint-disable-line no-param-reassign
           return cache;
         }, this.appCache);
       } else {
@@ -169,7 +169,7 @@ export default class EurekaClient {
         return resolve(`${protocol}://${hostName}:${hostPort}`);
       }).catch(() => {
         if (Array.isArray(instances)) {
-          return getInstanceByAppId(appId, instanceNumber + 1);
+          return this.getInstanceByAppId(appId, instanceNumber + 1);
         } else {
           err.error.reason = 'app is down';
           this.logger.log('error', '%s is unreachable', appId);
@@ -198,16 +198,16 @@ export default class EurekaClient {
 
     this.stopHeartbeats();
 
-    return this.sendHeartbeat().then(err => {
-      if (err) {
+    return this.sendHeartbeat().then(heartbeatErr => {
+      if (heartbeatErr) {
         this.failedHeartbeatAttempts++;
 
         // re-register after x failed attempts
         if (this.failedHeartbeatAttempts > retryRegisterAfter) {
-          this.register().then(err => {
+          this.register().then(regErr => {
             // if there's a registration error, this.register() will retry itself,
             // and then start heartbeats again
-            if (!err) {
+            if (!regErr) {
               this.failedHeartbeatAttempts = 0;
             }
           });

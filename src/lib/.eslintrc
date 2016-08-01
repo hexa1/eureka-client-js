@@ -1,0 +1,19 @@
+{
+  "parser": "babel-eslint",
+  "extends": "airbnb-base",
+  "rules": {
+    "max-len": [0],
+    "no-unused-vars": [2, { "vars": "all", "args": "none" }],
+    "no-else-return": [0],
+    "no-use-before-define": [0],
+    "no-nested-ternary": [0],
+    "arrow-body-style": [0],
+    "consistent-return": [0],
+    "newline-per-chained-call": [0],
+    "import/prefer-default-export": [0],
+    "import/no-extraneous-dependencies": [0]
+  },
+  "env": {
+    "mocha": true
+  }
+}
