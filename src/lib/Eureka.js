@@ -164,7 +164,15 @@ export default class EurekaClient {
       return checkInstanceUp(instanceToTest).then(instance => {
         const { hostName, securePort, port } = instance;
         const protocol = securePort['@enabled'] === 'true' ? 'https' : 'http';
-        const hostPort = securePort['@enabled'] === 'true' ? securePort.$ : port['@enabled'] === 'true' ? port.$ : 80;
+
+        let hostPort;
+        if (securePort['@enabled'] === 'true') {
+          hostPort = securePort.$;
+        } else if (port['@enabled'] === 'true') {
+          hostPort = port.$;
+        } else {
+          hostPort = 80;
+        }
 
         return resolve(`${protocol}://${hostName}:${hostPort}`);
       }).catch(() => {
