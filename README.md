@@ -44,10 +44,15 @@ The following methods are available after instantiating a new EurekaClient objec
   - `startHeartbeats()` - runs `sendHeartbeat()` at the interval specified in options
   - `stopHeartbeats()` - stops sending heartbeats
 
+## Testing
+
+`npm run test`
+
+`npm run coverage` to get code coverage stats
+
 ## TODO
   - Allow passing a custom `winston` logging transport, e.g. for remote logging
   - Add support for Eureka 1.1
-  - Tests
 
 ## Development
 

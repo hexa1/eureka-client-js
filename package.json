@@ -4,16 +4,17 @@
   "description": "Node.js eureka client",
   "main": "build/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npm run lint && ./node_modules/.bin/babel src --out-dir build",
-    "lint": "./node_modules/.bin/eslint src"
+    "test": "NODE_ENV=test mocha --bail --check-leaks --compilers js:babel-register tests/setup.js tests/index.js tests/**/*",
+    "coverage": "nyc npm run test > /dev/null; nyc report",
+    "build": "npm run lint && babel src --out-dir build",
+    "lint": "eslint src tests"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hexa1/eureka-client-js.git"
   },
   "author": "Vito LaVilla <vito@vitosamson.com>",
-  "license": "SEE LICENSE IN LICENSE.txt",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/hexa1/eureka-client-js/issues"
   },
@@ -27,8 +28,25 @@
   "devDependencies": {
     "babel-cli": "^6.11.4",
     "babel-plugin-add-module-exports": "^0.2.1",
+    "babel-plugin-istanbul": "^2.0.1",
     "babel-plugin-transform-es2015-modules-commonjs": "^6.11.5",
     "eslint": "^3.4.0",
-    "eslint-config-hexa1": "github:hexa1/eslint-config-hexa1#v0.1.1"
+    "eslint-config-hexa1": "github:hexa1/eslint-config-hexa1#v0.1.1",
+    "expect": "^1.20.2",
+    "mocha": "^3.0.0",
+    "nyc": "^8.3.0"
+  },
+  "nyc": {
+    "all": true,
+    "sourceMap": false,
+    "instrument": false,
+    "cache": true,
+    "include": [
+      "src/**/*.js"
+    ],
+    "reporter": [
+      "html",
+      "text"
+    ]
   }
 }

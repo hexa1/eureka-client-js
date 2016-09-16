@@ -1,7 +1,7 @@
 import { inspect } from 'util';
 import rp from 'request-promise';
 
-export function formatError({ statusCode, message, options }) {
+export function formatError({ statusCode, message, options = {} } = {}) {
   return inspect({
     statusCode,
     message,

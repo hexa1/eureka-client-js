@@ -14,11 +14,27 @@ const defaultOptions = {
   },
 };
 
+class AppUnavailableError extends Error {
+  constructor(reason) {
+    super();
+
+    this.error = {
+      statusCode: 503,
+      message: 'Service unavailable',
+      reason,
+    };
+  }
+}
+
 export default class EurekaClient {
   constructor(options) {
     if (!options) {
       throw new Error('Missing eureka options');
     }
+
+    // make it easier to mock in tests
+    this.request = rp;
+    this.checkInstanceUp = checkInstanceUp;
 
     this.options = Object.assign({}, defaultOptions, options);
 
@@ -41,7 +57,7 @@ export default class EurekaClient {
 
     this.logger.log('info', 'registering with eureka');
 
-    return rp({
+    return this.request({
       uri: `${eurekaHost}/apps/${appName}`,
       method: 'POST',
       body: {
@@ -80,15 +96,19 @@ export default class EurekaClient {
       this.logger.log('error', `registration failure: ${formatError(err)}`);
       this.logger.log('info', 'retrying registration in %d seconds', registerRetryInterval);
 
-      setTimeout(this.register, registerRetryInterval * 1000);
+      this.registerRetryTimeout = setTimeout(this.register, registerRetryInterval * 1000);
       return err;
     });
+  }
+
+  stopRegisterRetry() {
+    clearTimeout(this.registerRetryTimeout);
   }
 
   deregister() {
     const { eurekaHost, appName, instanceId } = this.options;
 
-    return rp({
+    return this.request({
       uri: `${eurekaHost}/apps/${appName}/${encodeURIComponent(instanceId)}`,
       method: 'DELETE',
     });
@@ -97,7 +117,7 @@ export default class EurekaClient {
   fetchRegistry() {
     const { eurekaHost } = this.options;
 
-    return rp({
+    return this.request({
       uri: `${eurekaHost}/apps`,
       method: 'GET',
       json: true,
@@ -133,64 +153,55 @@ export default class EurekaClient {
   }
 
   getInstanceByAppId(appId, instanceNumber = 0) {
-    return new Promise((resolve, reject) => {
-      const instances = this.appCache[appId];
-      const err = new Error();
-      let instanceToTest;
+    const instances = this.appCache[appId];
+    let instanceToTest;
 
-      err.error = {
-        statusCode: 503,
-        message: 'Service unavailable',
-      };
+    if (!instances) {
+      this.logger.log('error', '%s is unreachable', appId);
+      return Promise.reject(new AppUnavailableError('app is not in cache'));
+    }
 
-      if (!instances) {
-        err.error.reason = 'app is not in cache';
+    if (Array.isArray(instances)) {
+      if (!instances[instanceNumber]) {
         this.logger.log('error', '%s is unreachable', appId);
-        return reject(err);
-      }
-
-      if (Array.isArray(instances)) {
-        if (instances[instanceNumber] === undefined) {
-          err.error.reason = 'app has no available instances';
-          this.logger.log('error', '%s is unreachable', appId);
-          return reject(err);
-        } else {
-          instanceToTest = instances[instanceNumber];
-        }
+        return Promise.reject(new AppUnavailableError('app has no available instances'));
       } else {
-        instanceToTest = instances;
+        instanceToTest = instances[instanceNumber];
+      }
+    } else {
+      instanceToTest = instances;
+    }
+
+    return this.checkInstanceUp(instanceToTest).then(instance => {
+      const { hostName, securePort = {}, port = {} } = instance;
+      const hasSecurePort = securePort['@enabled'] && securePort['@enabled'].toString() === 'true';
+      const hasInsecurePort = port['@enabled'] && port['@enabled'].toString() === 'true';
+      const protocol = hasSecurePort ? 'https' : 'http';
+
+      let hostPort;
+      if (hasSecurePort) {
+        hostPort = securePort.$;
+      } else if (hasInsecurePort) {
+        hostPort = port.$;
+      } else {
+        hostPort = 80;
       }
 
-      return checkInstanceUp(instanceToTest).then(instance => {
-        const { hostName, securePort, port } = instance;
-        const protocol = securePort['@enabled'] === 'true' ? 'https' : 'http';
-
-        let hostPort;
-        if (securePort['@enabled'] === 'true') {
-          hostPort = securePort.$;
-        } else if (port['@enabled'] === 'true') {
-          hostPort = port.$;
-        } else {
-          hostPort = 80;
-        }
-
-        return resolve(`${protocol}://${hostName}:${hostPort}`);
-      }).catch(() => {
-        if (Array.isArray(instances)) {
-          return this.getInstanceByAppId(appId, instanceNumber + 1);
-        } else {
-          err.error.reason = 'app is down';
-          this.logger.log('error', '%s is unreachable', appId);
-          return reject(err);
-        }
-      });
+      return `${protocol}://${hostName}:${hostPort}`;
+    }).catch((err) => {
+      if (Array.isArray(instances)) {
+        return this.getInstanceByAppId(appId, instanceNumber + 1);
+      } else {
+        this.logger.log('error', '%s is unreachable', appId);
+        throw new AppUnavailableError('app is down');
+      }
     });
   }
 
   sendHeartbeat() {
     const { eurekaHost, appName, hostName, instanceId } = this.options;
 
-    return rp({
+    return this.request({
       uri: `${eurekaHost}/apps/${appName}/${hostName}:${instanceId}`,
       method: 'PUT',
     }).then(() => {

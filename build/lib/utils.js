@@ -14,7 +14,7 @@ var _requestPromise2 = _interopRequireDefault(_requestPromise);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function formatError({ statusCode, message, options }) {
+function formatError({ statusCode, message, options = {} } = {}) {
   return (0, _util.inspect)({
     statusCode,
     message,
