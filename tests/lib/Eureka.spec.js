@@ -20,6 +20,52 @@ describe('EurekaClient', () => {
   });
 
   describe('register', () => {
+    it('sends all the instance data in a POST request to eureka', (done) => {
+      const options = {
+        eurekaHost: '/eureka',
+        appName: 'myApp',
+        hostName: 'myApp',
+        ipAddr: '10.0.1.123',
+        instanceId: 'myApp123',
+        port: {
+          $: 3000,
+          '@enabled': true,
+        },
+        securePort: {
+          $: 3001,
+          '@enabled': true,
+        },
+        dataCenterInfo: {
+          name: 'MyOwn',
+          '@class': 'com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo',
+        },
+        statusPageUrl: 'whatever',
+        healthCheckUrl: 'whatever',
+        homePageUrl: 'whatever',
+      };
+
+      const client = new EurekaClient(options);
+      expect.spyOn(client, 'request').andReturn(Promise.resolve());
+      client.register().then(() => {
+        const args = client.request.calls[0].arguments[0];
+        const { instance } = args.body;
+        expect(args.uri).toEqual('/eureka/apps/myApp');
+        expect(args.method).toEqual('POST');
+        expect(instance.app).toEqual(options.appName);
+        expect(instance.hostName).toEqual(options.hostName);
+        expect(instance.ipAddr).toEqual(options.ipAddr);
+        expect(instance.port).toEqual(options.port);
+        expect(instance.securePort).toEqual(options.securePort);
+        expect(instance.dataCenterInfo).toEqual(options.dataCenterInfo);
+        expect(instance.statusPageUrl).toEqual(options.statusPageUrl);
+        expect(instance.healthCheckUrl).toEqual(options.healthCheckUrl);
+        expect(instance.homePageUrl).toEqual(options.homePageUrl);
+        expect(instance.vipAddress).toEqual(options.appName);
+        expect(instance.metadata).toEqual({ instanceId: options.instanceId });
+        done();
+      }).catch(done);
+    });
+
     it('starts sending heartbeats and fetching the registry after a successful register', (done) => {
       const client = new EurekaClient({});
       mockRequest(client, { statusCode: 204 });

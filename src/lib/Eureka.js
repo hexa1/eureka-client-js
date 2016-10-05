@@ -1,5 +1,6 @@
 import rp from 'request-promise';
 import winston from 'winston';
+import pick from 'lodash.pick';
 
 import configureLogger from './log';
 import { formatError, checkInstanceUp } from './utils';
@@ -25,6 +26,17 @@ class AppUnavailableError extends Error {
     };
   }
 }
+
+const instanceOptions = [
+  'hostName',
+  'ipAddr',
+  'port',
+  'securePort',
+  'dataCenterInfo',
+  'statusPageUrl',
+  'healthCheckUrl',
+  'homePageUrl',
+];
 
 export default class EurekaClient {
   constructor(options) {
@@ -52,8 +64,16 @@ export default class EurekaClient {
   }
 
   register() {
-    const { eurekaHost, appName, hostName, ipAddr, port, instanceId, statusPageUrl,
-      dataCenterInfo, registerRetryInterval, heartbeatInterval, registryInterval } = this.options;
+    const instance = pick(this.options, instanceOptions);
+    const {
+      eurekaHost,
+      appName,
+      hostName,
+      instanceId,
+      registerRetryInterval,
+      heartbeatInterval,
+      registryInterval,
+    } = this.options;
 
     this.logger.log('info', 'registering with eureka');
 
@@ -61,18 +81,13 @@ export default class EurekaClient {
       uri: `${eurekaHost}/apps/${appName}`,
       method: 'POST',
       body: {
-        instance: {
-          hostName,
-          ipAddr,
-          port,
-          dataCenterInfo,
-          statusPageUrl,
+        instance: Object.assign({}, instance, {
           app: appName,
           vipAddress: appName,
           metadata: {
             instanceId,
           },
-        },
+        }),
       },
       json: true,
       resolveWithFullResponse: true,
@@ -85,13 +100,13 @@ export default class EurekaClient {
       this.logger.log('info', 'hostname is %s', hostName);
       this.logger.log('info', 'instance ID is %s', instanceId);
 
-      this.logger.log('info', 'starting heartbeats at interval of %d seconds', heartbeatInterval);
-      this.startHeartbeats();
-
       this.logger.log('info', 'starting registry fetcher at interval of %d seconds', registryInterval);
       this.startRegistryFetcher();
 
       this.failedHeartbeatAttempts = 0;
+
+      this.logger.log('info', 'starting heartbeats at interval of %d seconds', heartbeatInterval);
+      return this.startHeartbeats();
     }).catch(err => {
       this.logger.log('error', `registration failure: ${formatError(err)}`);
       this.logger.log('info', 'retrying registration in %d seconds', registerRetryInterval);

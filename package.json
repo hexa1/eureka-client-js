@@ -21,6 +21,7 @@
   "homepage": "https://github.com/hexa1/eureka-client-js#readme",
   "dependencies": {
     "chalk": "^1.1.3",
+    "lodash.pick": "^4.4.0",
     "request": "^2.74.0",
     "request-promise": "^4.0.2",
     "winston": "^2.2.0"
