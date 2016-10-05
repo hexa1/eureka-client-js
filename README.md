@@ -4,8 +4,7 @@
 Install via npm+git: `npm install hexa1/eureka-client-js --save`.
 
 ```js
-import EurekaClient from 'eureka-client-js'; // (if using es2015 packages)
-const EurekaClient = require('eureka-client-js').default // (if using commonjs)
+import EurekaClient from 'eureka-client-js';
 
 const myClient = new EurekaClient({
   // ... options, see below
@@ -17,24 +16,28 @@ myClient.register();
 ## Options
 The following options are available:
 
-  - `eurekaHost`: host:port of the eureka registry
-  - `appName`: name of your service
-  - `hostName`: host name of the machine your service is running on
-  - `ipAddr`: ip address of the machine your service is running on
-  - `port`: port that your service is listening on
-  - `instanceId`: unique ID of the instance of this service (each instance must have a unique ID)
-  - `statusPageUrl`: url for your service's status page
-  - `dataCenterInfo`: not sure, I just leave it as `{ name: 'MyOwn' }` ¯\\_(ツ)_/¯
-  - `registerRetryInterval`: how long to wait after a failed registration attempt to retry (in seconds, defaults to 5)
-  - `retryRegisterAfter`: how many failed heartbeat attempts can happen before attempting to re-register (in seconds, defaults to 3)
-  - `heartbeatInterval`: how often to send a heartbeat (in seconds, defaults to 5)
-  - `registryInterval`: how often to fetch the registry (in seconds, defaults to 15)
-  - `logLevel`: see [winston logging levels](https://www.npmjs.com/package/winston#logging-levels)
+| Option | Description | Required | Default value |
+|--------|-------------|----------|---------------|
+| `eurekaHost` | host:port of your Eureka registry | yes |  |
+| `appName` | the name of your service | yes |  |
+| `hostName` | the hostname for your service | yes |  |
+| `ipAddr` | the IP address of your service | yes |  |
+| `port` | must take the following structure: `{ "$": <int>, "@enabled": <bool> }` | yes | |
+| `securePort` | must take the following structure: `{ "$": <int>, "@enabled": <bool> }` | yes | |
+| `instanceId` | unique ID of the instance of this service | yes | |
+| `statusPageUrl` | | yes | |
+| `dataCenterInfo` | see Eureka's docs | yes | |
+| `registerRetryInterval` | how long to wait after a failed registration before attempting again, in seconds | no | 5 |
+| `retryRegisterAfter` | how many failed heartbeat attempts can occur before attempting to re-register | no | 3 |
+| `heartbeatInterval` | how often to send a heartbeat, in seconds | no | 5 |
+| `registryInterval` | how often to fetch the registry, in seconds | no | 15 |
+| `logLevel` | see [winston logging levels](https://www.npmjs.com/package/winston#logging-levels) | no | info |
 
-## Available methods on the EurekaClient class
+## EurekaClient class methods
 The following methods are available after instantiating a new EurekaClient object:
 
   - `register()`: registers with the eureka registry. will continue to try to re-register if registration fails
+  - `stopRegisterRetry()`: if registration fails it will automatically retry itself according to the `registerRetryInterval` option. Use this if you want to stop that retry loop.
   - `deregister()`: deregisters with the eureka registry
   - `fetchRegistry()`: gets the latest list of instances from the eureka registry, stores in internal cache
   - `startRegistryFetcher()` - runs `fetchRegistry()` at the interval specified in options
@@ -50,12 +53,11 @@ The following methods are available after instantiating a new EurekaClient objec
 
 `npm run coverage` to get code coverage stats
 
-## TODO
-  - Allow passing a custom `winston` logging transport, e.g. for remote logging
-  - Add support for Eureka 1.1
-
 ## Development
 
 Please lint all code before committing: `npm run lint`.
 
 The package needs to be built and the built files committed: `npm run build`.
+
+## TODO
+  - Allow passing a custom `winston` logging transport, e.g. for remote logging
