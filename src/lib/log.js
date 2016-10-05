@@ -12,4 +12,6 @@ export default function configureLogger(level) {
       },
     },
   });
+
+  return winston.loggers.get('eureka-client');
 }

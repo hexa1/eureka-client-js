@@ -16,22 +16,20 @@ myClient.register();
 ## Options
 The following options are available:
 
-| Option | Description | Required | Default value |
-|--------|-------------|----------|---------------|
-| `eurekaHost` | host:port of your Eureka registry | yes |  |
-| `appName` | the name of your service | yes |  |
-| `hostName` | the hostname for your service | yes |  |
-| `ipAddr` | the IP address of your service | yes |  |
-| `port` | must take the following structure: `{ "$": <int>, "@enabled": <bool> }` | yes | |
-| `securePort` | must take the following structure: `{ "$": <int>, "@enabled": <bool> }` | yes | |
-| `instanceId` | unique ID of the instance of this service | yes | |
-| `statusPageUrl` | | yes | |
-| `dataCenterInfo` | see Eureka's docs | yes | |
-| `registerRetryInterval` | how long to wait after a failed registration before attempting again, in seconds | no | 5 |
-| `retryRegisterAfter` | how many failed heartbeat attempts can occur before attempting to re-register | no | 3 |
-| `heartbeatInterval` | how often to send a heartbeat, in seconds | no | 5 |
-| `registryInterval` | how often to fetch the registry, in seconds | no | 15 |
-| `logLevel` | see [winston logging levels](https://www.npmjs.com/package/winston#logging-levels) | no | info |
+| Option | Type | Description | Required | Default value |
+|--------|------|-------------|----------|---------------|
+| `eurekaHost` | string | host:port of your Eureka registry | yes |  |
+| `instance`| object | see Instance Options below | yes | |
+| `registerRetryInterval` | number | how long to wait after a failed registration before attempting again, in seconds | no | 5 |
+| `retryRegisterAfter` | number | how many failed heartbeat attempts can occur before attempting to re-register | no | 3 |
+| `heartbeatInterval` | number | how often to send a heartbeat, in seconds | no | 5 |
+| `registryInterval` | number | how often to fetch the registry, in seconds | no | 15 |
+| `logLevel` | string | see [winston logging levels](https://www.npmjs.com/package/winston#logging-levels) | no | info |
+
+### Instance Options
+The `instance` object should conform to the Eureka XSD spec: https://github.com/Netflix/eureka/wiki/Eureka-REST-operations.
+
+The only difference is that you should pass `instanceId` inside the `instance` object. This value isn't passed to Eureka during registration but it is used for crafting the URLs when making requests to Eureka.
 
 ## EurekaClient class methods
 The following methods are available after instantiating a new EurekaClient object:

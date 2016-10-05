@@ -5,6 +5,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.formatError = formatError;
 exports.checkInstanceUp = checkInstanceUp;
+exports.createInstanceObject = createInstanceObject;
 
 var _util = require('util');
 
@@ -30,4 +31,52 @@ function checkInstanceUp(instance) {
   }).then(() => {
     return instance;
   });
+}
+
+function createInstanceObject(instanceOptions = {}) {
+  const {
+    app,
+    hostName,
+    ipAddr,
+    port,
+    securePort,
+    dataCenterInfo,
+    statusPageUrl,
+    healthCheckUrl,
+    homePageUrl,
+    instanceId
+  } = instanceOptions;
+
+  const instance = {
+    app,
+    hostName,
+    ipAddr,
+    dataCenterInfo,
+    statusPageUrl,
+    healthCheckUrl,
+    homePageUrl,
+    metadata: {
+      instanceId
+    }
+  };
+
+  if (!isNaN(parseInt(port, 10))) {
+    instance.port = {
+      $: parseInt(port, 10),
+      '@enabled': true
+    };
+  } else {
+    instance.port = port;
+  }
+
+  if (!isNaN(parseInt(securePort, 10))) {
+    instance.securePort = {
+      $: parseInt(securePort, 10),
+      '@enabled': true
+    };
+  } else {
+    instance.securePort = securePort;
+  }
+
+  return instance;
 }

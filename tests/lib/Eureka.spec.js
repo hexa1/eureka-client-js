@@ -1,5 +1,6 @@
 import expect from 'expect';
 import EurekaClient from '../../src/lib/Eureka';
+import { createInstanceObject } from '../../src/lib/utils';
 
 describe('EurekaClient', () => {
   const mockRequest = (client, ret, reject = false) => {
@@ -23,45 +24,36 @@ describe('EurekaClient', () => {
     it('sends all the instance data in a POST request to eureka', (done) => {
       const options = {
         eurekaHost: '/eureka',
-        appName: 'myApp',
-        hostName: 'myApp',
-        ipAddr: '10.0.1.123',
-        instanceId: 'myApp123',
-        port: {
-          $: 3000,
-          '@enabled': true,
+        instance: {
+          app: 'myApp',
+          hostName: 'myApp',
+          ipAddr: '10.0.1.123',
+          instanceId: 'myApp123',
+          port: {
+            $: 3000,
+            '@enabled': true,
+          },
+          securePort: {
+            $: 3001,
+            '@enabled': true,
+          },
+          dataCenterInfo: {
+            name: 'MyOwn',
+            '@class': 'com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo',
+          },
+          statusPageUrl: 'whatever',
+          healthCheckUrl: 'whatever',
+          homePageUrl: 'whatever',
         },
-        securePort: {
-          $: 3001,
-          '@enabled': true,
-        },
-        dataCenterInfo: {
-          name: 'MyOwn',
-          '@class': 'com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo',
-        },
-        statusPageUrl: 'whatever',
-        healthCheckUrl: 'whatever',
-        homePageUrl: 'whatever',
       };
 
       const client = new EurekaClient(options);
       expect.spyOn(client, 'request').andReturn(Promise.resolve());
       client.register().then(() => {
         const args = client.request.calls[0].arguments[0];
-        const { instance } = args.body;
         expect(args.uri).toEqual('/eureka/apps/myApp');
         expect(args.method).toEqual('POST');
-        expect(instance.app).toEqual(options.appName);
-        expect(instance.hostName).toEqual(options.hostName);
-        expect(instance.ipAddr).toEqual(options.ipAddr);
-        expect(instance.port).toEqual(options.port);
-        expect(instance.securePort).toEqual(options.securePort);
-        expect(instance.dataCenterInfo).toEqual(options.dataCenterInfo);
-        expect(instance.statusPageUrl).toEqual(options.statusPageUrl);
-        expect(instance.healthCheckUrl).toEqual(options.healthCheckUrl);
-        expect(instance.homePageUrl).toEqual(options.homePageUrl);
-        expect(instance.vipAddress).toEqual(options.appName);
-        expect(instance.metadata).toEqual({ instanceId: options.instanceId });
+        expect(args.body.instance).toEqual(createInstanceObject(options.instance));
         done();
       }).catch(done);
     });
@@ -97,7 +89,7 @@ describe('EurekaClient', () => {
 
   describe('deregister', () => {
     it('sends a DELETE request to eureka', () => {
-      const client = new EurekaClient({ eurekaHost: '/eureka', appName: 'myApp', instanceId: 'myApp123' });
+      const client = new EurekaClient({ eurekaHost: '/eureka', instance: { app: 'myApp', instanceId: 'myApp123' } });
       expect.spyOn(client, 'request');
       client.deregister();
       expect(client.request).toHaveBeenCalledWith({
@@ -283,9 +275,11 @@ describe('EurekaClient', () => {
     it('sends a PUT request to eureka', (done) => {
       const client = new EurekaClient({
         eurekaHost: '/eureka',
-        appName: 'myApp',
-        hostName: 'myapp.com',
-        instanceId: 'myApp123',
+        instance: {
+          app: 'myApp',
+          hostName: 'myapp.com',
+          instanceId: 'myApp123',
+        },
       });
       expect.spyOn(client, 'request').andReturn(Promise.resolve());
       client.sendHeartbeat().then(() => {

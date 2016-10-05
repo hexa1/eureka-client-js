@@ -8,14 +8,6 @@ var _requestPromise = require('request-promise');
 
 var _requestPromise2 = _interopRequireDefault(_requestPromise);
 
-var _winston = require('winston');
-
-var _winston2 = _interopRequireDefault(_winston);
-
-var _lodash = require('lodash.pick');
-
-var _lodash2 = _interopRequireDefault(_lodash);
-
 var _log = require('./log');
 
 var _log2 = _interopRequireDefault(_log);
@@ -29,9 +21,7 @@ const defaultOptions = {
   heartbeatInterval: 5,
   registryInterval: 15,
   retryRegisterAfter: 3,
-  dataCenterInfo: {
-    name: 'MyOwn'
-  }
+  instance: {}
 };
 
 class AppUnavailableError extends Error {
@@ -46,8 +36,6 @@ class AppUnavailableError extends Error {
   }
 }
 
-const instanceOptions = ['hostName', 'ipAddr', 'port', 'securePort', 'dataCenterInfo', 'statusPageUrl', 'healthCheckUrl', 'homePageUrl'];
-
 class EurekaClient {
   constructor(options) {
     if (!options) {
@@ -60,8 +48,7 @@ class EurekaClient {
 
     this.options = Object.assign({}, defaultOptions, options);
 
-    (0, _log2.default)(options.logLevel);
-    this.logger = _winston2.default.loggers.get('eureka-client');
+    this.logger = (0, _log2.default)(options.logLevel);
 
     this.appCache = {};
     this.heartbeatTimer = null;
@@ -74,33 +61,21 @@ class EurekaClient {
   }
 
   register() {
-    // const { eurekaHost, appName, hostName, ipAddr, port, instanceId, statusPageUrl,
-    // dataCenterInfo, registerRetryInterval, heartbeatInterval, registryInterval } = this.options;
-    const instance = (0, _lodash2.default)(this.options, instanceOptions);
+    const instance = (0, _utils.createInstanceObject)(this.options.instance);
     const {
       eurekaHost,
-      appName,
-      hostName,
-      instanceId,
       registerRetryInterval,
       heartbeatInterval,
-      registryInterval
+      registryInterval,
+      instance: { app, hostName, instanceId }
     } = this.options;
 
     this.logger.log('info', 'registering with eureka');
 
     return this.request({
-      uri: `${ eurekaHost }/apps/${ appName }`,
+      uri: `${ eurekaHost }/apps/${ app }`,
       method: 'POST',
-      body: {
-        instance: Object.assign({}, instance, {
-          app: appName,
-          vipAddress: appName,
-          metadata: {
-            instanceId
-          }
-        })
-      },
+      body: { instance },
       json: true,
       resolveWithFullResponse: true
     }).then(res => {
@@ -133,10 +108,10 @@ class EurekaClient {
   }
 
   deregister() {
-    const { eurekaHost, appName, instanceId } = this.options;
+    const { eurekaHost, instance: { app, instanceId } } = this.options;
 
     return this.request({
-      uri: `${ eurekaHost }/apps/${ appName }/${ encodeURIComponent(instanceId) }`,
+      uri: `${ eurekaHost }/apps/${ app }/${ encodeURIComponent(instanceId) }`,
       method: 'DELETE'
     });
   }
@@ -153,7 +128,7 @@ class EurekaClient {
 
       if (Array.isArray(application)) {
         application.reduce((cache, { name, instance }) => {
-          cache[name] = instance; // eslint-disable-line no-param-reassign
+          cache[name] = instance;
           return cache;
         }, this.appCache);
       } else {
@@ -226,10 +201,10 @@ class EurekaClient {
   }
 
   sendHeartbeat() {
-    const { eurekaHost, appName, hostName, instanceId } = this.options;
+    const { eurekaHost, instance: { app, hostName, instanceId } } = this.options;
 
     return this.request({
-      uri: `${ eurekaHost }/apps/${ appName }/${ hostName }:${ instanceId }`,
+      uri: `${ eurekaHost }/apps/${ app }/${ hostName }:${ instanceId }`,
       method: 'PUT'
     }).then(() => {
       this.logger.log('debug', 'sent heartbeat');

@@ -26,5 +26,7 @@ function configureLogger(level) {
       }
     }
   });
+
+  return _winston2.default.loggers.get('eureka-client');
 }
 module.exports = exports['default'];
