@@ -64,5 +64,13 @@ export function createInstanceObject(instanceOptions = {}) {
     instance.securePort = securePort;
   }
 
+  if (instance.port && instance.port['@enabled']) {
+    instance.port['@enabled'] = instance.port['@enabled'].toString();
+  }
+
+  if (instance.securePort && instance.securePort['@enabled']) {
+    instance.securePort['@enabled'] = instance.securePort['@enabled'].toString();
+  }
+
   return instance;
 }

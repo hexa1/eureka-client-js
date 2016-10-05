@@ -33,8 +33,15 @@ describe('utils', () => {
     it('converts port and securePort to objects if they are numbers', () => {
       const instanceOptions = { port: 3000, securePort: 3001 };
       const instance = utils.createInstanceObject(instanceOptions);
-      expect(instance.port).toEqual({ $: 3000, '@enabled': true });
-      expect(instance.securePort).toEqual({ $: 3001, '@enabled': true });
+      expect(instance.port).toEqual({ $: 3000, '@enabled': 'true' });
+      expect(instance.securePort).toEqual({ $: 3001, '@enabled': 'true' });
+    });
+
+    it('sets @enabled to String(true), not a boolean, on port and securePort', () => {
+      const instanceOptions = { port: 3000, securePort: 3001 };
+      const instance = utils.createInstanceObject(instanceOptions);
+      expect(instance.port['@enabled']).toEqual('true');
+      expect(instance.securePort['@enabled']).toEqual('true');
     });
   });
 });
