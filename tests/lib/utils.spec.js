@@ -43,5 +43,11 @@ describe('utils', () => {
       expect(instance.port['@enabled']).toEqual('true');
       expect(instance.securePort['@enabled']).toEqual('true');
     });
+
+    it('sets vipAddress to the app name if not already set', () => {
+      const instanceOptions = { app: 'myApp' };
+      const instance = utils.createInstanceObject(instanceOptions);
+      expect(instance.vipAddress).toEqual(instanceOptions.app);
+    });
   });
 });

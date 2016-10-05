@@ -31,6 +31,7 @@ export function createInstanceObject(instanceOptions = {}) {
     healthCheckUrl,
     homePageUrl,
     instanceId,
+    vipAddress,
   } = instanceOptions;
 
   const instance = {
@@ -41,6 +42,7 @@ export function createInstanceObject(instanceOptions = {}) {
     statusPageUrl,
     healthCheckUrl,
     homePageUrl,
+    vipAddress,
     metadata: {
       instanceId,
     },
@@ -70,6 +72,10 @@ export function createInstanceObject(instanceOptions = {}) {
 
   if (instance.securePort && instance.securePort['@enabled']) {
     instance.securePort['@enabled'] = instance.securePort['@enabled'].toString();
+  }
+
+  if (!instance.vipAddress) {
+    instance.vipAddress = app;
   }
 
   return instance;
