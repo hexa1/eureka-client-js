@@ -48,7 +48,12 @@ export function createInstanceObject(instanceOptions = {}) {
     },
   };
 
-  if (!isNaN(parseInt(port, 10))) {
+  if (port === null || port === undefined) {
+    instance.port = {
+      $: null,
+      '@enabled': false,
+    };
+  } else if (!isNaN(parseInt(port, 10))) {
     instance.port = {
       $: parseInt(port, 10),
       '@enabled': true,
@@ -57,7 +62,12 @@ export function createInstanceObject(instanceOptions = {}) {
     instance.port = port;
   }
 
-  if (!isNaN(parseInt(securePort, 10))) {
+  if (securePort === null || securePort === undefined) {
+    instance.securePort = {
+      $: null,
+      '@enabled': false,
+    };
+  } else if (!isNaN(parseInt(securePort, 10))) {
     instance.securePort = {
       $: parseInt(securePort, 10),
       '@enabled': true,
@@ -66,11 +76,11 @@ export function createInstanceObject(instanceOptions = {}) {
     instance.securePort = securePort;
   }
 
-  if (instance.port && instance.port['@enabled']) {
+  if (instance.port && instance.port['@enabled'] !== undefined) {
     instance.port['@enabled'] = instance.port['@enabled'].toString();
   }
 
-  if (instance.securePort && instance.securePort['@enabled']) {
+  if (instance.securePort && instance.securePort['@enabled'] !== undefined) {
     instance.securePort['@enabled'] = instance.securePort['@enabled'].toString();
   }
 

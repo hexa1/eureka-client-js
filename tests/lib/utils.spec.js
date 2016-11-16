@@ -30,6 +30,15 @@ describe('utils', () => {
       expect(instance.metadata).toEqual({ instanceId: instanceOptions.instanceId });
     });
 
+    it('disables port and securePort if they are null or undefined', () => {
+      let instance = utils.createInstanceObject({ port: null, securePort: null });
+      expect(instance.port).toEqual({ $: null, '@enabled': 'false' });
+      expect(instance.securePort).toEqual({ $: null, '@enabled': 'false' });
+      instance = utils.createInstanceObject({});
+      expect(instance.port).toEqual({ $: null, '@enabled': 'false' });
+      expect(instance.securePort).toEqual({ $: null, '@enabled': 'false' });
+    });
+
     it('converts port and securePort to objects if they are numbers', () => {
       const instanceOptions = { port: 3000, securePort: 3001 };
       const instance = utils.createInstanceObject(instanceOptions);
