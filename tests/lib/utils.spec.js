@@ -58,5 +58,17 @@ describe('utils', () => {
       const instance = utils.createInstanceObject(instanceOptions);
       expect(instance.vipAddress).toEqual(instanceOptions.app);
     });
+
+    it('sets homePageUrl, statusPageUrl and healthCheckUrl if not already set', () => {
+      let instance = utils.createInstanceObject({ securePort: 443, hostName: 'app.com' });
+      expect(instance.homePageUrl).toEqual('https://app.com:443');
+      expect(instance.statusPageUrl).toEqual('https://app.com:443/info');
+      expect(instance.healthCheckUrl).toEqual('https://app.com:443/health');
+
+      instance = utils.createInstanceObject({ homePageUrl: 'custom.com', statusPageUrl: 'customstatus.com', healthCheckUrl: 'customhealth.com' });
+      expect(instance.homePageUrl).toEqual('custom.com');
+      expect(instance.statusPageUrl).toEqual('customstatus.com');
+      expect(instance.healthCheckUrl).toEqual('customhealth.com');
+    });
   });
 });

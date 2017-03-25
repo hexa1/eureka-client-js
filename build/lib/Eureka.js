@@ -14,6 +14,10 @@ var _log2 = _interopRequireDefault(_log);
 
 var _utils = require('./utils');
 
+var _middleware = require('./middleware');
+
+var _middleware2 = _interopRequireDefault(_middleware);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 const defaultOptions = {
@@ -47,6 +51,7 @@ class EurekaClient {
     this.checkInstanceUp = _utils.checkInstanceUp;
 
     this.options = Object.assign({}, defaultOptions, options);
+    this.instance = (0, _utils.createInstanceObject)(this.options.instance);
 
     this.logger = (0, _log2.default)(options.logLevel);
 
@@ -58,10 +63,14 @@ class EurekaClient {
     this.register = this.register.bind(this);
     this.startHeartbeats = this.startHeartbeats.bind(this);
     this.startRegistryFetcher = this.startRegistryFetcher.bind(this);
+    this.middleware = this.middleware.bind(this);
+  }
+
+  middleware() {
+    return (0, _middleware2.default)(this.instance);
   }
 
   register() {
-    const instance = (0, _utils.createInstanceObject)(this.options.instance);
     const {
       eurekaHost,
       registerRetryInterval,
@@ -75,7 +84,7 @@ class EurekaClient {
     return this.request({
       uri: `${ eurekaHost }/apps/${ app }`,
       method: 'POST',
-      body: { instance },
+      body: { instance: this.instance },
       json: true,
       resolveWithFullResponse: true
     }).then(res => {
@@ -201,10 +210,10 @@ class EurekaClient {
   }
 
   sendHeartbeat() {
-    const { eurekaHost, instance: { app, hostName, instanceId } } = this.options;
+    const { eurekaHost, instance: { app, instanceId } } = this.options;
 
     return this.request({
-      uri: `${ eurekaHost }/apps/${ app }/${ hostName }:${ instanceId }`,
+      uri: `${ eurekaHost }/apps/${ app }/${ instanceId }`,
       method: 'PUT'
     }).then(() => {
       this.logger.log('debug', 'sent heartbeat');

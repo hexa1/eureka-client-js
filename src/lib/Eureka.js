@@ -2,6 +2,7 @@ import rp from 'request-promise';
 
 import configureLogger from './log';
 import { formatError, checkInstanceUp, createInstanceObject } from './utils';
+import createEurekaMiddleware from './middleware';
 
 const defaultOptions = {
   registerRetryInterval: 5,
@@ -34,6 +35,7 @@ export default class EurekaClient {
     this.checkInstanceUp = checkInstanceUp;
 
     this.options = Object.assign({}, defaultOptions, options);
+    this.instance = createInstanceObject(this.options.instance);
 
     this.logger = configureLogger(options.logLevel);
 
@@ -45,10 +47,14 @@ export default class EurekaClient {
     this.register = this.register.bind(this);
     this.startHeartbeats = this.startHeartbeats.bind(this);
     this.startRegistryFetcher = this.startRegistryFetcher.bind(this);
+    this.middleware = this.middleware.bind(this);
+  }
+
+  middleware() {
+    return createEurekaMiddleware(this.instance);
   }
 
   register() {
-    const instance = createInstanceObject(this.options.instance);
     const {
       eurekaHost,
       registerRetryInterval,
@@ -62,7 +68,7 @@ export default class EurekaClient {
     return this.request({
       uri: `${eurekaHost}/apps/${app}`,
       method: 'POST',
-      body: { instance },
+      body: { instance: this.instance },
       json: true,
       resolveWithFullResponse: true,
     }).then(res => {
@@ -188,10 +194,10 @@ export default class EurekaClient {
   }
 
   sendHeartbeat() {
-    const { eurekaHost, instance: { app, hostName, instanceId } } = this.options;
+    const { eurekaHost, instance: { app, instanceId } } = this.options;
 
     return this.request({
-      uri: `${eurekaHost}/apps/${app}/${hostName}:${instanceId}`,
+      uri: `${eurekaHost}/apps/${app}/${instanceId}`,
       method: 'PUT',
     }).then(() => {
       this.logger.log('debug', 'sent heartbeat');

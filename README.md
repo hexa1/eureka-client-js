@@ -44,6 +44,26 @@ The following methods are available after instantiating a new EurekaClient objec
   - `sendHeartbeat()` - sends a heartbeat for this service
   - `startHeartbeats()` - runs `sendHeartbeat()` at the interval specified in options
   - `stopHeartbeats()` - stops sending heartbeats
+  - `middleware()` - see [Middleware](#Middleware)
+
+## Middleware
+This is an express-compatible middleware that provides endpoints used by the Eureka server for determining the health of the service.
+
+The following endpoints are provided:
+  - `/info`
+  - `/health`
+  - `/metrics`
+  - `/env`
+
+### Usage
+```js
+const app = express();
+const myClient = new EurekaClient({
+  // ...options
+});
+
+app.use(myClient.middleware());
+```
 
 ## Testing
 

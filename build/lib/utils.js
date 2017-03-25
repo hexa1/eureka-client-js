@@ -5,6 +5,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.formatError = formatError;
 exports.checkInstanceUp = checkInstanceUp;
+exports.getActivePortAndProtocol = getActivePortAndProtocol;
 exports.createInstanceObject = createInstanceObject;
 
 var _util = require('util');
@@ -33,34 +34,21 @@ function checkInstanceUp(instance) {
   });
 }
 
-function createInstanceObject(instanceOptions = {}) {
-  const {
-    app,
-    hostName,
-    ipAddr,
-    port,
-    securePort,
-    dataCenterInfo,
-    statusPageUrl,
-    healthCheckUrl,
-    homePageUrl,
-    instanceId,
-    vipAddress
-  } = instanceOptions;
+function getActivePortAndProtocol(instance) {
+  if (instance.securePort && instance.securePort['@enabled'] === 'true') {
+    return { port: instance.securePort.$, protocol: 'https' };
+  } else {
+    return { port: instance.port.$, protocol: 'http' };
+  }
+}
 
-  const instance = {
-    app,
-    hostName,
-    ipAddr,
-    dataCenterInfo,
-    statusPageUrl,
-    healthCheckUrl,
-    homePageUrl,
-    vipAddress,
-    metadata: {
+function createInstanceObject(instanceOptions = {}) {
+  const { port, securePort, app, instanceId } = instanceOptions;
+  const instance = Object.assign({}, instanceOptions, {
+    metadata: Object.assign({}, instanceOptions.metadata, {
       instanceId
-    }
-  };
+    })
+  });
 
   if (port === null || port === undefined) {
     instance.port = {
@@ -100,6 +88,20 @@ function createInstanceObject(instanceOptions = {}) {
 
   if (!instance.vipAddress) {
     instance.vipAddress = app;
+  }
+
+  const { port: activePort, protocol } = getActivePortAndProtocol(instance);
+
+  if (!instance.homePageUrl) {
+    instance.homePageUrl = `${ protocol }://${ instance.hostName }:${ activePort }`;
+  }
+
+  if (!instance.statusPageUrl) {
+    instance.statusPageUrl = `${ protocol }://${ instance.hostName }:${ activePort }/info`;
+  }
+
+  if (!instance.healthCheckUrl) {
+    instance.healthCheckUrl = `${ protocol }://${ instance.hostName }:${ activePort }/health`;
   }
 
   return instance;

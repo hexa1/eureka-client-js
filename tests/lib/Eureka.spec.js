@@ -284,7 +284,7 @@ describe('EurekaClient', () => {
       expect.spyOn(client, 'request').andReturn(Promise.resolve());
       client.sendHeartbeat().then(() => {
         expect(client.request).toHaveBeenCalledWith({
-          uri: '/eureka/apps/myApp/myapp.com:myApp123',
+          uri: '/eureka/apps/myApp/myApp123',
           method: 'PUT',
         });
         done();
